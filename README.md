@@ -1,1 +1,1 @@
-# Gestor_comercio_electr-nico
+# Gestor_comercio_electronico
