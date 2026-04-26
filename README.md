@@ -1,7 +1,9 @@
 # Gestor_comercio_electronico
 
-Proyecto demo pequeno de administracion para e-commerce (usuarios, productos y ordenes), pensado para practicar Spring Boot.
-No esta orientado a produccion: la idea es aprender y probar rapido.
+Este proyecto es una implementación ligera de un backend para e-commerce, enfocado en la gestión de usuarios, productos y órdenes.
+Su propósito principal es servir como entorno de experimentación y práctica sobre el ecosistema de Spring.
+
+---
 
 ## Tecnologias usadas
 
@@ -10,31 +12,33 @@ No esta orientado a produccion: la idea es aprender y probar rapido.
 - Spring Web MVC
 - Spring Data JPA
 - Spring Security
-- OAuth2 Resource Server (para modo Keycloak)
-- H2 Database (en memoria)
+- OAuth2 Resource Server (autenticación con keycloak)
+- H2 Database
 - Springdoc OpenAPI (Swagger UI)
 - Maven
 - Docker Compose
 
-## Ejecucion rapida
+## Ejecución 
 
-### Opcion 1: local con Maven
+### EJecución local
 
 ```zsh
 ./mvnw spring-boot:run
 ```
 
-La app levanta por defecto en `http://localhost:8080` con perfil `manual`.
+La app se ejecuta por defecto en `http://localhost:8080` con perfil `manual`.
 
-### Opcion 2: con Docker Compose (solo app)
+---
+
+### Ejecución con Docker
 
 ```zsh
 docker compose up -d
 ```
 
-Este Compose levanta la aplicacion en un contenedor Maven. Spring Boot no intenta arrancar este `compose.yaml` automaticamente al iniciar la app localmente.
+Docker levanta la aplicacion en un contenedor Maven. Spring Boot no intenta arrancar `compose.yaml` automaticamente al iniciar la app en local.
 
-Para ver logs:
+Ver logs:
 
 ```zsh
 docker compose logs -f app
@@ -45,19 +49,38 @@ Para detener:
 ```zsh
 docker compose down
 ```
+---
 
-## Credenciales de prueba
+## Acceso inicial
 
-Con perfil `manual`, se crea (o actualiza) un admin por defecto al iniciar:
+En el perfil `manual`, se genera automáticamente un usuario administrador al iniciar la aplicación:
 
 - Usuario: `admin`
 - Password: `admin123`
 - Rol: `ADMIN`
+  
+Esto permite interactuar con la API desde el primer momento sin configuración adicional.
 
+---
+
+## Pruebas de la API
+
+Se incluye una colección de pruebas en Postman para facilitar la exploración de los endpoints y validar el comportamiento de la API:
+
+- Colección Postman: `<link-al-set>`
+
+Adicionalmente, la API puede inspeccionarse y probarse directamente desde Swagger UI:
+
+http://localhost:8080/swagger-ui/index.html
+
+Swagger permite visualizar los endpoints disponibles, sus contratos y ejecutar requests de forma interactiva sin necesidad de herramientas externas.
+
+---
 ## Decisiones tecnicas (resumen)
+Este proyecto prioriza simplicidad y claridad sobre robustez:
 
-- Se trabaja por perfiles de Spring (`manual` / `keycloak`) para cambiar estrategia de autenticacion sin tocar codigo de negocio.
-- El perfil por defecto es `manual`, ideal para desarrollo/demo sin depender de Keycloak.
-- Base de datos H2 en memoria para arranque rapido y entorno descartable.
-- Usuario admin bootstrap para tener acceso inmediato despues de levantar el proyecto.
-- Arquitectura en capas (`controller`, `service`, `repository`, `model`) para mantener el codigo simple y ordenado.
+- Uso de perfiles (`manual` / `keycloak`) para desacoplar la autenticación del dominio.
+- Configuración por defecto orientada a desarrollo rápido, sin dependencias externas.
+- Base de datos en memoria para facilitar reinicios limpios y pruebas rápidas.
+- Bootstrap de usuario administrador para reducir fricción al probar endpoints.
+- Estructura en capas (`controller`, `service`, `repository`, `model`) para mantener separación de responsabilidades sin sobreingeniería.
