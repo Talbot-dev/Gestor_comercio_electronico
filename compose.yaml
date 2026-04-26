@@ -1,0 +1,16 @@
+services:
+  app:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: ecommerce-admin-app
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+      - maven-cache:/root/.m2
+    command: ./mvnw spring-boot:run
+    environment:
+      SPRING_PROFILES_ACTIVE: manual
+    ports:
+      - "8080:8080"
+
+volumes:
+  maven-cache:

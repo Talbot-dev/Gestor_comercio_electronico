@@ -1,0 +1,36 @@
+-------------------------------------------------------------------------------
+Test set: com.app.ProductoControllerIntegrationTests
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 4.600 s <<< FAILURE! -- in com.app.ProductoControllerIntegrationTests
+com.app.ProductoControllerIntegrationTests.eliminaProductoConSoftDeleteYPermiteRestaurarloPorNombre -- Time elapsed: 0.354 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<204> but was:<403>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.app.ProductoControllerIntegrationTests.eliminaProductoConSoftDeleteYPermiteRestaurarloPorNombre(ProductoControllerIntegrationTests.java:115)
+
+com.app.ProductoControllerIntegrationTests.rechazaCreacionConNombreDuplicadoActivo -- Time elapsed: 0.067 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<409> but was:<403>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.app.ProductoControllerIntegrationTests.rechazaCreacionConNombreDuplicadoActivo(ProductoControllerIntegrationTests.java:86)
+
+com.app.ProductoControllerIntegrationTests.editaProductoExistente -- Time elapsed: 0.015 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<200> but was:<403>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.app.ProductoControllerIntegrationTests.editaProductoExistente(ProductoControllerIntegrationTests.java:99)
+
+com.app.ProductoControllerIntegrationTests.creaYBuscaProductoPorIdYNombre -- Time elapsed: 0.008 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<201> but was:<403>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:62)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:129)
+	at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$0(StatusResultMatchers.java:600)
+	at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:212)
+	at com.app.ProductoControllerIntegrationTests.creaYBuscaProductoPorIdYNombre(ProductoControllerIntegrationTests.java:57)
+
