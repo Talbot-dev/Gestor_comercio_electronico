@@ -6,7 +6,7 @@ services:
     volumes:
       - ./:/workspace
       - maven-cache:/root/.m2
-    command: ./mvnw spring-boot:run
+    command: mvn spring-boot:run
     environment:
       SPRING_PROFILES_ACTIVE: manual
     ports:

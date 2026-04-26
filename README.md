@@ -32,6 +32,8 @@ La app levanta por defecto en `http://localhost:8080` con perfil `manual`.
 docker compose up -d
 ```
 
+Este Compose levanta la aplicacion en un contenedor Maven. Spring Boot no intenta arrancar este `compose.yaml` automaticamente al iniciar la app localmente.
+
 Para ver logs:
 
 ```zsh
