@@ -67,7 +67,7 @@ Esto permite interactuar con la API desde el primer momento sin configuración a
 
 Se incluye una colección de pruebas en Postman para facilitar la exploración de los endpoints y validar el comportamiento de la API:
 
-- Colección Postman: `<link-al-set>`
+- Colección Postman: [`Set de pruebas.`](https://www.postman.com/talbot-systems/workspace/taller-ecommerce-acm/collection/41239914-029f05bc-c561-4409-b52f-719ec6b490a7?action=share&creator=41239914)
 
 Adicionalmente, la API puede inspeccionarse y probarse directamente desde Swagger UI:
 
@@ -76,7 +76,7 @@ http://localhost:8080/swagger-ui/index.html
 Swagger permite visualizar los endpoints disponibles, sus contratos y ejecutar requests de forma interactiva sin necesidad de herramientas externas.
 
 ---
-## Decisiones tecnicas (resumen)
+## Enfoque y decisiones
 Este proyecto prioriza simplicidad y claridad sobre robustez:
 
 - Uso de perfiles (`manual` / `keycloak`) para desacoplar la autenticación del dominio.
