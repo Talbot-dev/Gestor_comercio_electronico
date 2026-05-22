@@ -40,14 +40,6 @@ public class OrdenService {
     private final UsuarioService usuarioService;
     private final ProductoService productoService;
 
-    /**
-     * Procesa y persiste una nueva orden a partir de los datos del DTO recibido.
-     *
-     * @param dto datos de la orden a crear, incluyendo el usuario y la lista de ítems.
-     * @return {@link OrdenResponseDTO} con los datos de la orden persistida.
-     * @throws ResponseStatusException si el usuario no existe, algún producto no tiene
-     *  stock o la cantidad solicitada supera el disponible.
-     */
     @Transactional
     public OrdenResponseDTO crearPeticionOrden(CrearOrdenDTO dto) {
         if (dto.items() == null || dto.items().isEmpty()) {
@@ -106,8 +98,17 @@ public class OrdenService {
             precioTotalDeLaOrden += (long) producto.getPrice() * cantidadSolicitada;
         }
 
-        ordenGuardada.setItems(items);
+        // Asignar total de precio
         ordenGuardada.setTotalPrice(precioTotalDeLaOrden);
+
+        // Asignar items después de crear todos
+        if (items.isEmpty()) {
+            ordenGuardada.setItems(new ArrayList<>());
+        } else {
+            ordenGuardada.setItems(items);
+        }
+
+        // Guardar la orden con todos sus items y cambios
         ordenGuardada = ordenRepository.save(ordenGuardada);
 
         log.info("AUDIT orden_creada ordenId={} usuarioId={} total={} items={}",

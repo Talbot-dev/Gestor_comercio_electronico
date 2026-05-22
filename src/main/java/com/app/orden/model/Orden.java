@@ -24,7 +24,7 @@ public class Orden {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ordenId;
 
-    private Integer ordenStatus;
+    private OrdenStatus ordenStatus;
 
     @CreationTimestamp
     private LocalDate createdAt;

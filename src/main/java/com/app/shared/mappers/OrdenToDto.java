@@ -8,7 +8,8 @@ import java.util.List;
 public class OrdenToDto {
 
     public static OrdenResponseDTO mapearRespuesta(Orden orden) {
-        List<OrdenResponseDTO.ItemOrdenResponseDTO> items = orden.getItems().stream()
+        List<OrdenResponseDTO.ItemOrdenResponseDTO> items = orden.getItems() != null
+                ? orden.getItems().stream()
                 .map(item -> {
                     long subtotal = item.getListPrice().longValue() * item.getQuantity();
                     return new OrdenResponseDTO.ItemOrdenResponseDTO(
@@ -18,7 +19,8 @@ public class OrdenToDto {
                             subtotal
                     );
                 })
-                .toList();
+                .toList()
+                : java.util.Collections.emptyList();
 
         return new OrdenResponseDTO(
                 orden.getOrdenId(),
