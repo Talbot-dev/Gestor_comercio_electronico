@@ -1,6 +1,8 @@
 services:
   rabbitmq:
     image: rabbitmq:3-management
+    networks:
+        - ecommerce-network
     container_name: ecommerce-rabbitmq
     ports:
       - "5672:5672"
@@ -20,6 +22,9 @@ services:
       SPRING_PROFILES_ACTIVE: manual
     ports:
       - "8080:8080"
-
 volumes:
   maven-cache:
+
+networks:
+  ecommerce-network:
+    name: ecommerce-network

@@ -1,13 +1,14 @@
 package com.app.orden.service;
 
+import com.app.config.OrdenRabbitConfig;
 import com.app.orden.model.Orden;
 import com.app.orden.model.OrdenItem;
-import com.app.orden.model.OrdenItemID;
 import com.app.orden.repository.OrdenRepository;
 import com.app.producto.model.Producto;
 import com.app.producto.service.ProductoService;
 import com.app.shared.dto.CrearOrdenDTO;
 import com.app.shared.dto.OrdenResponseDTO;
+import com.app.shared.events.OrdenCreatedEvent;
 import com.app.shared.mappers.OrdenToDto;
 import com.app.shared.mappers.DtoToOrden;
 import com.app.usuario.model.Usuario;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -39,6 +41,7 @@ public class OrdenService {
     private final OrdenRepository ordenRepository;
     private final UsuarioService usuarioService;
     private final ProductoService productoService;
+    private final RabbitTemplate rabbitTemplate;
 
     @Transactional
     public OrdenResponseDTO crearPeticionOrden(CrearOrdenDTO dto) {
@@ -111,13 +114,19 @@ public class OrdenService {
         // Guardar la orden con todos sus items y cambios
         ordenGuardada = ordenRepository.save(ordenGuardada);
 
+        // Crear el evento para que payment service se encargue de procesar el pago.
+        OrdenCreatedEvent evento =  new OrdenCreatedEvent(ordenGuardada.getOrdenId(),
+                ordenGuardada.getUser().getUsuarioId(), items);
+        log.info("Publicando evento 'OrderCreated' para ordenId: {}", ordenGuardada.getOrdenId());
+        rabbitTemplate.convertAndSend(OrdenRabbitConfig.EXCHANGE, OrdenRabbitConfig.ROUTING_KEY, evento);
+
         log.info("AUDIT orden_creada ordenId={} usuarioId={} total={} items={}",
                 ordenGuardada.getOrdenId(),
                 ordenGuardada.getUser().getUsuarioId(),
                 ordenGuardada.getTotalPrice(),
                 ordenGuardada.getItems().size());
 
-        return OrdenToDto.mapearRespuesta(ordenGuardada);
+        return OrdenToDto.mapearRespuesta(ordenGuardada); // Eliminar esto.
     }
 
     @Transactional
@@ -174,4 +183,11 @@ public class OrdenService {
         return stockActual;
     }
 
+    @Transactional
+    public void devolverStock(String ordenId) {
+    }
+
+    public String cancelarOrden(String ordenId) {
+        return "xd";
+    }
 }
