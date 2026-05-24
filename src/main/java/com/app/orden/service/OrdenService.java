@@ -3,8 +3,10 @@ package com.app.orden.service;
 import com.app.config.OrdenRabbitConfig;
 import com.app.orden.model.Orden;
 import com.app.orden.model.OrdenItem;
+import com.app.orden.model.OrdenStatus;
 import com.app.orden.repository.OrdenRepository;
 import com.app.producto.model.Producto;
+import com.app.producto.repository.ProductoRepository;
 import com.app.producto.service.ProductoService;
 import com.app.shared.dto.CrearOrdenDTO;
 import com.app.shared.dto.OrdenResponseDTO;
@@ -25,12 +27,16 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +47,11 @@ public class OrdenService {
     private final OrdenRepository ordenRepository;
     private final UsuarioService usuarioService;
     private final ProductoService productoService;
+    private final ProductoRepository productoRepository;
     private final RabbitTemplate rabbitTemplate;
+
+    private final Map<Long, CompletableFuture<String>> pendingPaymentResponses = new ConcurrentHashMap<>();
+    private final Map<Long, String> stockCompensationMessages = new ConcurrentHashMap<>();
 
     @Transactional
     public OrdenResponseDTO crearPeticionOrden(CrearOrdenDTO dto) {
@@ -103,6 +113,7 @@ public class OrdenService {
 
         // Asignar total de precio
         ordenGuardada.setTotalPrice(precioTotalDeLaOrden);
+        ordenGuardada.setOrdenStatus(OrdenStatus.PENDING);
 
         // Asignar items después de crear todos
         if (items.isEmpty()) {
@@ -126,7 +137,8 @@ public class OrdenService {
                 ordenGuardada.getTotalPrice(),
                 ordenGuardada.getItems().size());
 
-        return OrdenToDto.mapearRespuesta(ordenGuardada); // Eliminar esto.
+        // Devuelve la orden en estado PENDING. Los listeners asíncronos la cambiarán a CONFIRMED o REJECTED.
+        return OrdenToDto.mapearRespuesta(ordenGuardada);
     }
 
     @Transactional
@@ -143,7 +155,6 @@ public class OrdenService {
      *  que referencian el mismo producto.
      * Si los productos recibidos son {productId:1, quantity:3}, {productId:1, quantity:5}
      * usando {@link LinkedHashMap} mantiene el orden de inserción y combina cantidades del mismo id.
-     *
      * {productId:1, quantity:(5+3) = 8}
      *
      * @param items lista de ítems del DTO, potencialmente con ID duplicados.
@@ -185,9 +196,63 @@ public class OrdenService {
 
     @Transactional
     public void devolverStock(String ordenId) {
+        Orden orden = buscarOrden(parseOrderId(ordenId));
+
+        Map<Long, Integer> stockRestaurado = new HashMap<>();
+        for (OrdenItem item : orden.getItems()) {
+            Producto producto = item.getProduct();
+            int nuevoStock = producto.getStock() + item.getQuantity();
+            producto.setStock(nuevoStock);
+            productoRepository.save(producto);
+            stockRestaurado.put(producto.getProductId(), nuevoStock);
+        }
+
+        String detalle = "Stock restaurado por producto: " + stockRestaurado;
+        stockCompensationMessages.put(orden.getOrdenId(), detalle);
     }
 
     public String cancelarOrden(String ordenId) {
-        return "xd";
+        Orden orden = buscarOrden(parseOrderId(ordenId));
+        orden.setOrdenStatus(OrdenStatus.REJECTED);
+        ordenRepository.save(orden);
+        return "Orden " + orden.getOrdenId() + " rechazada por error de pago";
+    }
+
+    @Transactional
+    public void confirmarPago(Long orderId) {
+        Orden orden = buscarOrden(orderId);
+        orden.setOrdenStatus(OrdenStatus.CONFIRMED);
+        ordenRepository.save(orden);
+
+        CompletableFuture<String> future = pendingPaymentResponses.remove(orderId);
+        if (future != null) {
+            future.complete("APPROVED");
+        }
+    }
+
+    public void resolverPagoRechazado(String orderId, String cancelacion) {
+        Long orderIdValue = parseOrderId(orderId);
+        String stockMessage = stockCompensationMessages.remove(orderIdValue);
+        String respuesta = stockMessage == null
+                ? cancelacion
+                : cancelacion + ". " + stockMessage;
+
+        CompletableFuture<String> future = pendingPaymentResponses.remove(orderIdValue);
+        if (future != null) {
+            future.complete(respuesta);
+        }
+    }
+
+    private Orden buscarOrden(Long orderId) {
+        return ordenRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "No existe la orden con id " + orderId));
+    }
+
+    private Long parseOrderId(String orderId) {
+        try {
+            return Long.valueOf(orderId);
+        } catch (NumberFormatException ex) {
+            throw new ResponseStatusException(BAD_REQUEST, "orderId inválido: " + orderId);
+        }
     }
 }

@@ -12,8 +12,9 @@ import org.springframework.context.annotation.Configuration;
 public class OrdenRabbitConfig {
 
     public static final String EXCHANGE = "ecommerce";
-    public static final String ROUTING_KEY = "orden.created";
+    public static final String ROUTING_KEY = "order.created";
 
+    public static final String PAYMENT_PROCESSED_QUEUE = "q.payment.processed";
     //Colas de compensación desde donde recibe mensajes
     public static final String PAYMENT_FAILED_STOCK_QUEUE = "q.payment.failed.stock";
     public static final String PAYMENT_FAILED_ORDER_QUEUE = "q.payment.failed.order";
@@ -29,8 +30,18 @@ public class OrdenRabbitConfig {
     }
 
     @Bean
+    public Queue paymentProcessedQueue(){
+        return QueueBuilder.durable(PAYMENT_PROCESSED_QUEUE).build();
+    }
+
+    @Bean
     public Queue paymentFailedOrderQueue(){
         return QueueBuilder.durable(PAYMENT_FAILED_ORDER_QUEUE).build();
+    }
+
+    @Bean
+    public Binding paymentProcessedBinding(Queue paymentProcessedQueue, TopicExchange exchange){
+        return BindingBuilder.bind(paymentProcessedQueue).to(exchange).with("payment.processed");
     }
 
     @Bean

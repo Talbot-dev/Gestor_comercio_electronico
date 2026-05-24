@@ -1,86 +1,154 @@
 # Gestor_comercio_electronico
 
-Este proyecto es una implementación ligera de un backend para e-commerce, enfocado en la gestión de usuarios, productos y órdenes.
-Su propósito principal es servir como entorno de experimentación y práctica sobre el ecosistema de Spring.
+Backend para gestión de comercio electrónico construido con Spring Boot. El proyecto cubre el ciclo básico de usuarios, productos y órdenes, con seguridad basada en roles y soporte para dos modos de autenticación.
 
----
+## Características principales
 
-## Tecnologias usadas
+- Gestión de usuarios, productos y órdenes.
+- Seguridad con Spring Security y control de acceso por roles.
+- Modo de autenticación `manual` para desarrollo local y `keycloak` para integración con un servidor OAuth2.
+- Base de datos H2 en memoria para pruebas rápidas.
+- Documentación interactiva con Swagger UI.
+- Integración con RabbitMQ mediante Docker Compose.
+
+## Stack tecnológico
 
 - Java 21
-- Spring Boot 4
+- Spring Boot 4.0.5
 - Spring Web MVC
 - Spring Data JPA
 - Spring Security
-- OAuth2 Resource Server (autenticación con keycloak)
+- Spring Boot OAuth2 Resource Server
 - H2 Database
-- Springdoc OpenAPI (Swagger UI)
+- Springdoc OpenAPI
 - Maven
 - Docker Compose
 
-## Ejecución 
+## Requisitos
 
-### EJecución local
+- Java 21
+- Maven Wrapper (`./mvnw`) o Maven instalado localmente
+- Docker y Docker Compose, si quieres levantar RabbitMQ junto con la aplicación
+
+## Configuración por defecto
+
+La aplicación arranca con el perfil `manual` por defecto:
+
+- `spring.profiles.default=manual`
+- `spring.profiles.active=manual`
+
+En este modo se crea o actualiza automáticamente un usuario administrador inicial:
+
+- Usuario: `admin`
+- Password: `admin123`
+- Rol: `ADMIN`
+
+## Ejecución local
 
 ```zsh
 ./mvnw spring-boot:run
 ```
 
-La app se ejecuta por defecto en `http://localhost:8080` con perfil `manual`.
+La aplicación queda disponible en `http://localhost:8080`.
 
----
+## Ejecución con Docker Compose
 
-### Ejecución con Docker
+El archivo `compose.yaml` levanta:
+
+- `rabbitmq` en `5672` y `15672`
+- `app` en `8080`
+
+Arranque:
 
 ```zsh
 docker compose up -d
 ```
 
-Docker levanta la aplicacion en un contenedor Maven. Spring Boot no intenta arrancar `compose.yaml` automaticamente al iniciar la app en local.
-
-Ver logs:
+Ver logs de la aplicación:
 
 ```zsh
 docker compose logs -f app
 ```
 
-Para detener:
+Detener todo:
 
 ```zsh
 docker compose down
 ```
----
 
-## Acceso inicial
+## Perfiles de ejecución
 
-En el perfil `manual`, se genera automáticamente un usuario administrador al iniciar la aplicación:
+### `manual`
 
-- Usuario: `admin`
-- Password: `admin123`
-- Rol: `ADMIN`
-  
-Esto permite interactuar con la API desde el primer momento sin configuración adicional.
+- Autenticación local para desarrollo.
+- Usa el usuario administrador bootstrap.
+- Es el perfil activo por defecto.
 
----
+### `keycloak`
 
-## Pruebas de la API
+Activa la validación JWT contra un issuer de Keycloak:
 
-Se incluye una colección de pruebas en Postman para facilitar la exploración de los endpoints y validar el comportamiento de la API:
+```properties
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8081/realms/ecommerce-admin
+```
 
-- Colección Postman: [`Set de pruebas.`](https://www.postman.com/talbot-systems/workspace/taller-ecommerce-acm/collection/41239914-029f05bc-c561-4409-b52f-719ec6b490a7?action=share&creator=41239914)
+Para usarlo, inicia la app con:
 
-Adicionalmente, la API puede inspeccionarse y probarse directamente desde Swagger UI:
+```zsh
+SPRING_PROFILES_ACTIVE=keycloak ./mvnw spring-boot:run
+```
 
+## Endpoints principales
+
+### Usuarios
+
+- `POST /api/public/registro/usuario` — registrar usuario
+- `GET /api/usuario/{id}` — consultar usuario por ID
+- `GET /api/usuario/nombre/{nombre}` — consultar usuario por nombre
+- `PATCH /api/usuario/{id}/rol` — cambiar rol de usuario
+- `DELETE /api/usuario/{id}` — eliminar usuario
+
+### Productos
+
+- `GET /api/productos/{id}` — consultar producto por ID
+- `GET /api/productos/nombre/{nombre}` — consultar producto por nombre
+- `POST /api/productos` — crear producto
+- `PUT /api/productos/{id}` — modificar producto
+- `DELETE /api/productos/{id}` — eliminar producto
+
+### Órdenes
+
+- `POST /api/orden` — crear orden
+- `GET /api/orden/usuario/{usuarioId}` — consultar historial de órdenes de un usuario
+
+## Documentación y pruebas
+
+Swagger UI:
+
+```text
 http://localhost:8080/swagger-ui/index.html
+```
 
-Swagger permite visualizar los endpoints disponibles, sus contratos y ejecutar requests de forma interactiva sin necesidad de herramientas externas.
+Colección de Postman:
 
----
-## Enfoque y decisiones
-Este proyecto prioriza simplicidad y claridad sobre robustez:
+- [Set de pruebas](https://www.postman.com/talbot-systems/workspace/taller-ecommerce-acm/collection/41239914-029f05bc-c561-4409-b52f-719ec6b490a7?action=share&creator=41239914)
 
-- Uso de perfiles (`manual` / `keycloak`) para desacoplar la autenticación del dominio.
-- Configuración por defecto orientada a desarrollo rápido, sin dependencias externas.
-- Base de datos en memoria para facilitar reinicios limpios y pruebas rápidas.
-- Bootstrap de usuario administrador para reducir fricción al probar endpoints.
-- Estructura en capas (`controller`, `service`, `repository`, `model`) para mantener separación de responsabilidades sin sobreingeniería.
+Ejecutar tests:
+
+```zsh
+./mvnw test
+```
+
+## Estructura general
+
+- `config/` — configuración general y seguridad
+- `usuario/` — dominio de usuarios
+- `producto/` — dominio de productos
+- `orden/` — dominio de órdenes
+- `shared/` — DTOs, eventos y mapeos comunes
+
+## Notas
+
+- La base de datos H2 se ejecuta en memoria y se recrea al iniciar la aplicación.
+- La persistencia usa `create-drop`, por lo que los datos se eliminan al detener la app.
+- La integración con Docker Compose está habilitada por defecto en `application.properties`.
